@@ -54,7 +54,7 @@ EOF
 
 cmdline() {
     local comm=$1
-    local archs=$2
+    local archs=${2//\x2c/,} # fix systemd formatting
 
     if [ -z $archs ] || [ $archs == "all" ]; then
         archs[0]="all"
