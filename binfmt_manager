@@ -1,0 +1,187 @@
+#!/bin/bash
+
+# register/unregister arch executables with binfmt_misc
+
+readonly PROGNAME=$(basename $0)
+readonly PROGDIR=$(readlink -m $(dirname $0))
+readonly ARGS="$@"
+
+readonly binfm_reg="/proc/sys/fs/binfmt_misc/register"
+readonly binfm_unreg="/proc/sys/fs/binfmt_misc"
+
+is_not_empty() {
+    [[ -n $1 ]]
+}
+
+is_empty() {
+    [[ -z $1 ]]
+}
+
+in_array() {
+    local e
+    for e in "${@:2}"; do
+        [[ "$e" == "$1" ]] && return 0;
+    done
+
+    return 1
+}
+
+err_msg() {
+    local msg=$1
+    local code=$2
+
+    echo "$msg" 1>&2;
+
+    if is_not_empty $code; then
+        exit $code
+    fi
+}
+
+usage() {
+    cat <<- EOF
+	Usage: $PROGNAME command [archs,]
+
+	Register/unregister qemu-static executables with binfmt_misc
+
+	  COMMANDS:
+	    register <archs,>    register qemu-static with the kernel for the listed archs
+	    unregister <archs,>  unregister archs
+
+	  OPTIONS:
+	    -h, --help           display this help message
+EOF
+}
+
+cmdline() {
+    local comm=$1
+    local archs=$2
+
+    if [ -z $archs ] || [ $archs == "all" ]; then
+        archs[0]="all"
+    else
+        if is_not_empty $archs; then
+            IFS=',' read -ra archs <<< "$archs"
+        fi
+    fi
+
+    case "$comm" in
+        register)
+            register "${archs[@]}"
+            ;;
+        unregister)
+            unregister "${archs[@]}"
+            ;;
+        *)
+            usage
+            exit 0
+            ;;
+    esac
+}
+
+register() {
+    local archs=("$@")
+
+    if in_array "all" "${archs[@]}"; then
+        _register "all"
+    elif is_not_empty $archs; then
+        for arch in "${archs[@]}"; do
+            _register $arch
+        done
+    else
+        err_msg "No archs defined" 1
+    fi
+}
+
+_register() {
+    echo $1
+}
+
+__register() {
+    local arch=$1
+
+    if is_not_empty $arch; then
+        if $arch == "aarch64" || $arch == "all"; then
+            echo ':aarch64:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7:\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/usr/bin/qemu-aarch64-static:' > $binfm_reg
+        fi
+
+        if $arch == "arm" || $arch == "all"; then
+            echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' > $binfm_reg
+        fi
+
+        if $arch == "armeb" || $arch == "all"; then
+            echo ':armeb:M::\x7fELF\x01\x02\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/usr/bin/qemu-armeb-static:' > $binfm_reg
+        fi
+
+        if $arch == "alpha" || $arch == "all"; then
+            echo ':alpha:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x26\x90:\xff\xff\xff\xff\xff\xfe\xfe\xff\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-alpha-static:' > $binfm_reg
+        fi
+
+        if $arch == "mips" || $arch == "all"; then
+            echo ':mips:M::\x7fELF\x01\x02\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x08:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/usr/bin/qemu-mips-static:' > $binfm_reg
+        fi
+
+        if $arch == "mipsel" || $arch == "all"; then
+            echo ':mipsel:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x08\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-mipsel-static:' > $binfm_reg
+        fi
+
+        if $arch == "ppc" || $arch == "all"; then
+            echo ':ppc:M::\x7fELF\x01\x02\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x14:\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/usr/bin/qemu-ppc-static:' > $binfm_reg
+        fi
+
+        if $arch == "sh4" || $arch == "all"; then
+            echo ':sh4:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x2a\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfb\xff\xff\xff:/usr/bin/qemu-sh4-static:' > $binfm_reg
+        fi
+
+        if $arch == "sh4eb" || $arch == "all"; then
+            echo ':sh4eb:M::\x7fELF\x01\x02\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x2a:\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/usr/bin/qemu-sh4eb-static:' > $binfm_reg
+        fi
+
+        if $arch == "sparc" || $arch == "all"; then
+            echo ':sparc:M::\x7fELF\x01\x02\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x02:\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/usr/bin/qemu-sparc-static:' > $binfm_reg
+        fi
+    fi
+}
+
+unregister() {
+    local archs=("$@")
+
+    if in_array "all" "${archs[@]}"; then
+        _unregister_all
+    elif is_not_empty $archs; then
+        for arch in "${archs[@]}"; do
+            _unregister $arch
+        done
+    else
+        err_msg "No archs defined" 1
+    fi
+}
+
+_unregister() {
+    local arch=$1
+
+    if [[ -f "$binfm_unreg/$arch" ]]; then
+        echo -1 > "$binfm_unreg/$arch"
+        echo "Arch '$arch' unregistered"
+    else
+        err_msg "Arch '$arch' was not registered"
+    fi
+}
+
+_unregister_all() {
+    local archs
+
+    archs="${archs} aarch64 arm armeb alpha"
+    archs="${archs} mips mipsel"
+    archs="${archs} ppc"
+    archs="${archs} sh4 sh4eb sparc"
+
+    for arch in ${archs}; do
+        _unregister $arch
+    done
+}
+
+main() {
+    cmdline $ARGS
+}
+
+main
