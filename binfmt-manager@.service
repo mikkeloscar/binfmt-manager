@@ -1,0 +1,12 @@
+[Unit]
+Description=Register/unregister qemu-%i-static executables with binfmt_misc
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/binfmt_manager register %i
+ExecStop=/usr/bin/binfmt_manager unregister %i
+KillMode=process
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
