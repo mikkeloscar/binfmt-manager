@@ -6,6 +6,10 @@ Register/unregister qemu-static executables with binfmt_misc
 
 A kernel with `BINFMT_MISC=y` and `qemu-user-static`.
 
+## Install
+
+`# make install` or get a `PKGBUILD` from [here](https://github.com/mikkeloscar/packages/tree/master/binfmt-manager).
+
 ## Usage
 
 Register `qemu-arm-static` and `qemu-armeb-static` with `binfmt_misc`.
