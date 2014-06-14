@@ -26,6 +26,14 @@ Register all
 # ./binfmt_manager register all
 ```
 
+#### systemd
+
+Register on boot with systemd.
+
+```
+# systemctl enable binfmt-manager@arm.service
+```
+
 ## LICENSE
 
 Copyright (C) 2014  Mikkel Oscar Lyderik Larsen
