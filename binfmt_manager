@@ -177,7 +177,11 @@ _unregister_all() {
 }
 
 main() {
-    cmdline $ARGS
+    if [ $EUID -ne 0 ]; then
+        err_msg "This script must be run with root privileges" 1
+    else
+        cmdline $ARGS
+    fi
 }
 
 main
