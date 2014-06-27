@@ -15,19 +15,19 @@ A kernel with `BINFMT_MISC=y` and `qemu-user-static`.
 Register `qemu-arm-static` and `qemu-armeb-static` with `binfmt_misc`.
 
 ```
-# ./binfmt_manager register arm,armeb
+# binfmt_manager register arm,armeb
 ```
 
 Unregister `qemu-arm-static` again.
 
 ```
-# ./binfmt_manager unregister arm
+# binfmt_manager unregister arm
 ```
 
 Register all
 
 ```
-# ./binfmt_manager register all
+# binfmt_manager register all
 ```
 
 #### systemd
